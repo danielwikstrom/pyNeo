@@ -71,15 +71,15 @@ setTimeAndCost("'Avion'",AvionValues,session)
 setTimeAndCost("'Barco'",BarcoValues,session)
 session.sync()
 
-q = findRute("Cadiz","A Coruna",99,session)
+q = findRute("Cadiz","A Coruna",10,session)
 #print (type(q.data()))
 data = q.data()[0]
-print data['p']
 def getName(id,session):
     return  session.run("match (n) where ID(n) =" +str(id) + " return n.name").data()[0]
 print "Total time: "+str(data['totalTime']) + "h Coste: " + str(data['totalCost'])+"$"
 for node in data['p']:
-    print str(getName(node.start,session)) + "<->" + str(getName(node.end,session))
+    print str(getName(node.start,session)) + "<->" + str(getName(node.end,session)) +" Tipo: " + node.get("Tipo")
+
 
 
 session.run("match ()-[r]->() delete r")
