@@ -49,8 +49,9 @@ def createConexiones(session):
     session.run(
         "Match (a:City{name:'Madrid'}) with a as madriz Match (b:City{name:'Salamanca'}) Create (madriz)-[Metodo:Conexion{Distancia:400,Tipo:'Carretera'}]->(b)")
 
+    session.run("MATCH (a:City)-[r:Conexion]->(b:City) Create(b)-[:Conexion{Tipo:r.Tipo,Distancia:r.Distancia,Time:r.Time,cost:r.cost}]->(a)")
 def findRute(origen,destino,maxTime,session):
-    return session.run("Match p=(a:City{name:'"+origen+"'})-[r*0..5]-(b:City{name:'"+destino+"'}) With p, relationships(p) As rcoll with p, reduce(cost=0,x IN rcoll| cost + x.Cost) AS totalCost,reduce(time = 0,x in rcoll | time + x.Time)as totalTime where totalTime < "
+    return session.run("Match p=(a:City{name:'"+origen+"'})-[r*0..5]->(b:City{name:'"+destino+"'}) With p, relationships(p) As rcoll with p, reduce(cost=0,x IN rcoll| cost + x.Cost) AS totalCost,reduce(time = 0,x in rcoll | time + x.Time)as totalTime where totalTime < "
                        +str(maxTime)+" return p,totalCost,totalTime Order By totalCost limit 1")
 
 def findRuteTEst(origen,destino,maxTime,session):
@@ -92,6 +93,7 @@ def order(id,origin, destination, type, session):
 
     p=findRute(origin,destination,type,session).data()[0]
     mejorTiempo=p['totalTime']
+    #Comprobar vehiculos
 
     if (tiempoMin <= type and type>=mejorTiempo):
 
@@ -148,6 +150,29 @@ def getPayedServices(idClient,payed,session):
 
 
 
+def vehicleAvailable(rute,session):
+    vehiculos = []
+
+        # mal esto de final porque no son direccionales las conexiones
+    for values in rute:
+        vehiculos.append(session.run("match(a:City{name:{ciudad}})-[r:hasA]-(b:Vehiculo) where b.libre <= 0  " +
+                                        "return ID(b) as vehiculo, ID(r) as relacion limit 1",
+                                        {"ciudad": values['inicio']}).data())
+    session.sync()
+    for vehiculo in vehiculos:
+        if(not vehiculo):
+            return None
+    else:return vehiculos
+
+
+def createRute(vehicles,rute,session):
+    print vehicles[1][0]['vehiculo']
+
+    for i in xrange(len(rute)):
+        print rute
+        session.run("match(a) where ID(a) = {id} set a.libre = {time}",{'id':vehicles[i][0]['vehiculo'],'time': rute[i]['tiempo']})
+        session.run("match() -[r]-(b) where ID(r) = {id} set remove r create (:City{name:{name})-(r:hasA)->(b) ",{'id':vehicles[i][0]['relacion'],'name': rute[i]['final']})
+
 if __name__ == "__main__":
     session = driver.session()
     session.run("match ()-[r]->() delete r")
@@ -167,13 +192,14 @@ if __name__ == "__main__":
     AvionValues = {"Time": 1 / 600.0, "Cost": 0.035, "Carga/Descarga": 2 / 3.0}
     BarcoValues = {"Time": 1 / 50.0, "Cost": 0.003, "Carga/Descarga": 1 / 3.0}
 
+
     setTimeAndCost("'Carretera'",CarreteraValues,session)
     setTimeAndCost("'Tren'",TrenValues,session)
     setTimeAndCost("'Avion'",AvionValues,session)
     setTimeAndCost("'Barco'",BarcoValues,session)
     session.sync()
 
-
+    '''
     #session.run("CREATE (n:Service{clientID:"+str(94)+",cost:7,time:5}) with n as cliente Match (b:Client) where ID(b)="+ str(94)+ " Create (cliente)-[c:Order]->(b)")
     idC=createClient("Pepito",session)
     idS=order(idC,"Cadiz","Madrid",STANDARD,session)
@@ -187,7 +213,7 @@ if __name__ == "__main__":
     tipes.append("urgentDay")
     tipes.append("blabla")
     getPayedServices(142,False,session)
-
+'''
 
     #getServicesByType(142,session,*tipes)
     #for x in tipes:
@@ -212,11 +238,8 @@ if __name__ == "__main__":
     for node in data['p']:
         name = getName(node.start,session)['n.name']
         name2 = getName(node.end,session)['n.name']
-        print name + "<->" + name2
-
-        print name + "<->" + name2 + " Tipo: " + node.get("Tipo")
+        print name + "->" + name2 + " Tipo: " + node.get("Tipo")
         rute.append({'inicio':name,'final':name2,'tiempo':node.get('Time'),'tipo':node.get("Tipo")})
-    print rute
     session.run("CREATE (n:Vehiculo { tipo: 'Avion',libre:0})")
     session.run("CREATE (n:Vehiculo { tipo: 'Tren',libre:0})")
     session.sync()
@@ -229,12 +252,21 @@ if __name__ == "__main__":
     session.run("match (a:City{name:'Barcelona'})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = 'Tren' return  ID(b) as vehiculo,ID(r) as relacion limit 1")
     session.run("match (a:City{name:'Madrid'})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = 'Carretera' return  ID(b) as vehiculo,ID(r) as relacion limit 1")
 
-    dunno = []
-    values = rute[0]
-        #mal esto de final porque no son direccionales las conexiones
-    ast = session.run("match(a:City{name:{ciudad}})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = {tipo} " + "return ID(b) as vehiculo, ID(r) as relacion limit 1",{"ciudad":values['final'],"tipo":values['tipo']})
-    session.sync()
-    print ast.data()
+    vehicles = vehicleAvailable(rute,session)
+    print vehicles
+
+    if(vehicles):
+        createRute(vehicles,rute,session)
+    else:
+        pass
+
+
+
+    #if todo esta lleno
+
+    #consulta doble
+
+    #creamos ruta
 '''
 ciudad
 
