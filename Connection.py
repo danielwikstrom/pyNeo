@@ -166,13 +166,12 @@ def vehicleAvailable(rute,session):
 
 
 def createRute(vehicles,rute,session):
-    print vehicles[1][0]['vehiculo']
-
     for i in xrange(len(rute)):
         print rute
         session.run("match(a) where ID(a) = {id} set a.libre = {time}",{'id':vehicles[i][0]['vehiculo'],'time': rute[i]['tiempo']})
-        session.run("match() -[r]-(b) where ID(r) = {id} delete r create (:City{name:{name})-(r:hasA)->(b) ",{'id':vehicles[i][0]['relacion'],'name': rute[i]['final']})
-
+        session.run("match() -[r]-(b) where ID(r) = {id} delete r ",{'id':vehicles[i][0]['relacion']})
+        session.run("match(a:City{name:'{name}'}), (b) where ID(b) = {id} create (a)-[:hasA]->(b) ",{'name':rute[i]['final'],'id' : vehicles[i][0]['vehiculo']})
+        session.sync()
 if __name__ == "__main__":
     session = driver.session()
     session.run("match ()-[r]->() delete r")
