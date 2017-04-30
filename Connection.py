@@ -53,6 +53,10 @@ def findRute(origen,destino,maxTime,session):
     return session.run("Match p=(a:City{name:'"+origen+"'})-[r*0..5]-(b:City{name:'"+destino+"'}) With p, relationships(p) As rcoll with p, reduce(cost=0,x IN rcoll| cost + x.Cost) AS totalCost,reduce(time = 0,x in rcoll | time + x.Time)as totalTime where totalTime < "
                        +str(maxTime)+" return p,totalCost,totalTime Order By totalCost limit 1")
 
+def findRuteTEst(origen,destino,maxTime,session):
+    return session.run("Match p=(a:City{name:'"+origen+"'})-[r*0..5]-(b:City{name:'"+destino+"'}) With p, relationships(p) As rcoll with p, reduce(cost=0,x IN rcoll| cost + x.Cost) AS totalCost,reduce(time = 0,x in rcoll | time + x.Time)as totalTime where totalTime < "
+                       +str(maxTime)+" return nodes(p) as p,totalCost,totalTime Order By totalCost limit 1")
+
 
 def getName(id, session):
     return session.run("match (n) where ID(n) =" + str(id) + " return n.name").data()[0]
@@ -90,11 +94,15 @@ def order(id,origin, destination, type, session):
     mejorTiempo=p['totalTime']
 
     if (tiempoMin <= type and type>=mejorTiempo):
-        s=session.run("CREATE (n:Service{clientID:" + str(id) + ",cost:"+str(p['totalCost'])+",time:"+str(mejorTiempo)+",type:'"+getTypeTransport(type)+"',payed:'"+str(False)+"'}) return ID(n) as identificador").data()[0]
-        sID=s['identificador']
-        session.run("Match (n:Service) where ID(n)="+str(sID)+" with n as cliente Match (b:Client) where ID(b)=" + str(id) + " Create (cliente)-[c:Order]->(b)")
 
-        print("A new service has been ordered: ")
+        s=session.run("CREATE (n:Package{clientID:" + str(id) + ",cost:"+str(p['totalCost'])+",time:"+str(mejorTiempo)+",transports:[],type:'"+getTypeTransport(type)+"',payed:'"+str(False)+"'}) return ID(n) as identificador").data()[0]
+        sID = s['identificador']
+        for node in p['p']:
+            trans=node.properties.values()[2]
+            session.run("Match (n:Package) where ID(n)="+str(sID)+" set n.transports=n.transports+'"+trans+"'")
+        session.run("Match (n:Package) where ID(n)="+str(sID)+" with n as cliente Match (b:Client) where ID(b)=" + str(id) + " Create (cliente)-[c:Order]->(b)")
+
+        print("A new Package has been ordered: ")
         print("Price: "+ str(p['totalCost']))
         print("Time: "+ str(mejorTiempo)+ " hours")
         for node in p['p']:
@@ -105,18 +113,18 @@ def order(id,origin, destination, type, session):
         return None
 
 def payService(idService,session):
-    session.run("Match (n:Service) where ID(n)="+str(idService)+" set n.payed="+str(True))
+    session.run("Match (n:Package) where ID(n)="+str(idService)+" set n.payed="+str(True))
 def getServicesByType(idClient,session,*types):
     services=[]
     for x in types:
-        s=session.run("match (n:Service)-[]-(a:Client) where ID(a)="+str(idClient)+" with n as services match (services) where services.type='"+x+"' return ID(services) as id").data()
+        s=session.run("match (n:Package)-[]-(a:Client) where ID(a)="+str(idClient)+" with n as services match (services) where services.type='"+x+"' return ID(services) as id").data()
         if(s):
             services.append(s[0]['id'])
     return services
 def getPayedServices(idClient,payed,session):
     services=[]
     if(payed):
-        s = session.run("match (n:Service)-[]-(a:Client) where ID(a)=" + str(idClient) + " with n as services match (services) where services.payed='true' return collect(ID(services)) as id").data()
+        s = session.run("match (n:Package)-[]-(a:Client) where ID(a)=" + str(idClient) + " with n as services match (services) where services.payed='true' return collect(ID(services)) as id").data()
         if(s):
             services=s['id']
             print("the following services have been payed: ")
@@ -124,7 +132,7 @@ def getPayedServices(idClient,payed,session):
                 print("service: "+str(x))
     else:
         prices=[]
-        s = session.run("match (n:Service)-[]-(a:Client) where ID(a)=" + str(
+        s = session.run("match (n:Package)-[]-(a:Client) where ID(a)=" + str(
             idClient) + " with n as services match (services) where services.payed='False' return collect(ID(services))as id,collect(services.cost) as price").data()
         if(s):
             services=s[0]['id']
@@ -132,7 +140,7 @@ def getPayedServices(idClient,payed,session):
             print("the following services have not been payed")
             for i,item in enumerate(services):
                 print("service: "+ str(services[i])+", to pay: "+str(prices[i]))
-        
+
 
 
 if __name__ == "__main__":
@@ -160,7 +168,11 @@ if __name__ == "__main__":
     setTimeAndCost("'Barco'",BarcoValues,session)
     session.sync()
 
+    print("ahalala")
+    for node in findRute("Cadiz","A Coruna",99,session).data()[0]['p']:
+        print
 
+    print("ahalala")
     #session.run("CREATE (n:Service{clientID:"+str(94)+",cost:7,time:5}) with n as cliente Match (b:Client) where ID(b)="+ str(94)+ " Create (cliente)-[c:Order]->(b)")
     idC=createClient("Pepito",session)
     idS=order(idC,"Cadiz","Madrid",STANDARD,session)
