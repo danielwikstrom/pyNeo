@@ -11,10 +11,12 @@ def setTimeAndCost(name, values,session):
 
 
 def createCiudades(session):
-    session.run("CREATE (a:City {name: {name}})", {"name": "Madrid"})
-    session.run("CREATE (a:City {name: {name}})",{"name": "Barcelona"})
-    session.run("CREATE (a:City {name: {name}})", {"name": "A Coruna"})
-    session.run("CREATE (a:City {name: {name}})",{"name": "Valencia"})
+    session.run("CREATE (a:City {name: {name}})", {"name": "Madrid","bestTime":4})
+    session.run("CREATE (a:City {name: {name}})",{"name": "Barcelona","bestTime":4})
+    session.run("CREATE (a:City {name: {name}})", {"name": "A Coruna","bestTime":8})
+    session.run("CREATE (a:City {name: {name}})",{"name": "Valencia","bestTime":8})
+    session.run("CREATE (a:City {name: {name}})", {"name": "Salamanca", "bestTime": 4})
+    session.run("CREATE (a:City {name: {name}})", {"name": "Cadiz", "bestTime": 12})
 def createConexiones(session):
     session.run(
         "Match (a:City{name:'Madrid'}) with a as madriz Match (b:City{name:'Barcelona'}) Create (madriz)-[Metodo:Conexion{Distancia:600,Tipo:'Avion'}]->(b)")
@@ -22,8 +24,7 @@ def createConexiones(session):
         "Match (a:City{name:'Madrid'}) with a as madriz Match (b:City{name:'Barcelona'}) Create (madriz)-[Metodo:Conexion{Distancia:600,Tipo:'Carretera'}]->(b)")
     session.run(
         "Match (a:City{name:'Madrid'}) with a as madriz Match (b:City{name:'Barcelona'}) Create (madriz)-[Metodo:Conexion{Distancia:600,Tipo:'Tren'}]->(b)")
-    session.run("CREATE (a:City {name: {name}})",
-                {"name": "Cadiz"})
+
     session.run(
         "Match (a:City{name:'Madrid'}) with a as madriz Match (b:City{name:'Cadiz'}) Create (madriz)-[Metodo:Conexion{Distancia:700,Tipo:'Avion'}]->(b)")
     session.run(
@@ -41,8 +42,7 @@ def createConexiones(session):
     session.run(
         "Match (a:City{name:'Madrid'}) with a as madriz Match (b:City{name:'A Coruna'}) Create (madriz)-[Metodo:Conexion{Distancia:700,Tipo:'Carretera'}]->(b)")
 
-    session.run("CREATE (a:City {name: {name}})",
-                {"name": "Salamanca"})
+
     session.run(
         "Match (a:City{name:'Madrid'}) with a as madriz Match (b:City{name:'Salamanca'}) Create (madriz)-[Metodo:Conexion{Distancia:400,Tipo:'Carretera'}]->(b)")
 
