@@ -106,10 +106,38 @@ def order(id,origin, destination, type, session):
 
 def payService(idService,session):
     session.run("Match (n:Service) where ID(n)="+str(idService)+" set n.payed="+str(True))
+def getServicesByType(idClient,session,*types):
+    services=[]
+    for x in types:
+        s=session.run("match (n:Service)-[]-(a:Client) where ID(a)="+str(idClient)+" with n as services match (services) where services.type='"+x+"' return ID(services) as id").data()
+        if(s):
+            services.append(s[0]['id'])
+    return services
+def getPayedServices(idClient,payed,session):
+    services=[]
+    if(payed):
+        s = session.run("match (n:Service)-[]-(a:Client) where ID(a)=" + str(idClient) + " with n as services match (services) where services.payed='true' return collect(ID(services)) as id").data()
+        if(s):
+            services=s['id']
+            print("the following services have been payed: ")
+            for x in services:
+                print("service: "+str(x))
+    else:
+        prices=[]
+        s = session.run("match (n:Service)-[]-(a:Client) where ID(a)=" + str(
+            idClient) + " with n as services match (services) where services.payed='False' return collect(ID(services))as id,collect(services.cost) as price").data()
+        if(s):
+            services=s[0]['id']
+            prices=s[0]['price']
+            print("the following services have not been payed")
+            for i,item in enumerate(services):
+                print("service: "+ str(services[i])+", to pay: "+str(prices[i]))
+        
+
 
 if __name__ == "__main__":
     session = driver.session()
-
+    """
     session.run("match ()-[r]->() delete r")
     session.sync()
     session.run("match (a) delete a")
@@ -131,11 +159,24 @@ if __name__ == "__main__":
     setTimeAndCost("'Avion'",AvionValues,session)
     setTimeAndCost("'Barco'",BarcoValues,session)
     session.sync()
-
+    """
+    """
     #session.run("CREATE (n:Service{clientID:"+str(94)+",cost:7,time:5}) with n as cliente Match (b:Client) where ID(b)="+ str(94)+ " Create (cliente)-[c:Order]->(b)")
     idC=createClient("Pepito",session)
-    idS=order(idC,"Cadiz","Madrid",12,session)
-    payService(idS,session)
+    idS=order(idC,"Cadiz","Madrid",STANDARD,session)
+    idS2 = order(idC, "Madrid", "Barcelona", URGENT_DAY, session)
+    idS3 = order(idC, "Cadiz", "A Coruna", ECONOMIC, session)
+    """
+    tipes=[]
+    tipes.append("economic")
+    tipes.append("urgentDay")
+    tipes.append("blabla")
+    getPayedServices(142,False,session)
+
+
+    #getServicesByType(142,session,*tipes)
+    #for x in tipes:
+    #    session.run()
     """
     q = findRute("Cadiz","A Coruna",99,session)
 #print (type(q.data()))
