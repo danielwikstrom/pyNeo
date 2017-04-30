@@ -48,44 +48,45 @@ def createConexiones(session):
 
 def findRute(origen,destino,maxTime,session):
     return session.run("Match p=(a:City{name:'"+origen+"'})-[r*0..5]-(b:City{name:'"+destino+"'}) With p, relationships(p) As rcoll with p, reduce(cost=0,x IN rcoll| cost + x.Cost) AS totalCost,reduce(time = 0,x in rcoll | time + x.Time)as totalTime where totalTime < "
-                +str(maxTime)+" return p,totalCost,totalTime Order By totalCost limit 1")
-
-# with driver.session() as session:
-session = driver.session()
-# session.close()
-
-createCiudades(session)
-session.sync()
-createConexiones(session)
-session.sync()
+                       +str(maxTime)+" return p,totalCost,totalTime Order By totalCost limit 1")
 
 
-CarreteraValues = {"Time": 1 / 100.0, "Cost": 0.01, "Carga/Descarga": 5 / 60.0}
-TrenValues = {"Time": 5 / 600.0, "Cost": 0.008, "Carga/Descarga": 1 / 6.0}
-AvionValues = {"Time": 1 / 600.0, "Cost": 0.035, "Carga/Descarga": 2 / 3.0}
-BarcoValues = {"Time": 1 / 50.0, "Cost": 0.003, "Carga/Descarga": 1 / 3.0}
+def getName(id, session):
+    return session.run("match (n) where ID(n) =" + str(id) + " return n.name").data()[0]
 
-setTimeAndCost("'Carretera'",CarreteraValues,session)
-setTimeAndCost("'Tren'",TrenValues,session)
-setTimeAndCost("'Avion'",AvionValues,session)
-setTimeAndCost("'Barco'",BarcoValues,session)
-session.sync()
+if __name__ == "__main__":
+    session = driver.session()
+    session.run("match ()-[r]->() delete r")
+    session.sync()
+    session.run("match (a) delete a")
+    session.sync()
 
-q = findRute("Cadiz","A Coruna",10,session)
-#print (type(q.data()))
-data = q.data()[0]
-def getName(id,session):
-    return  session.run("match (n) where ID(n) =" +str(id) + " return n.name").data()[0]
-print "Total time: "+str(data['totalTime']) + "h Coste: " + str(data['totalCost'])+"$"
-for node in data['p']:
-    print str(getName(node.start,session)) + "<->" + str(getName(node.end,session)) +" Tipo: " + node.get("Tipo")
+    createCiudades(session)
+    session.sync()
+    createConexiones(session)
+    session.sync()
 
 
 
-session.run("match ()-[r]->() delete r")
-session.sync()
-session.run("match (a) delete a")
-session.sync()
+    CarreteraValues = {"Time": 1 / 100.0, "Cost": 0.01, "Carga/Descarga": 5 / 60.0}
+    TrenValues = {"Time": 5 / 600.0, "Cost": 0.008, "Carga/Descarga": 1 / 6.0}
+    AvionValues = {"Time": 1 / 600.0, "Cost": 0.035, "Carga/Descarga": 2 / 3.0}
+    BarcoValues = {"Time": 1 / 50.0, "Cost": 0.003, "Carga/Descarga": 1 / 3.0}
+
+    setTimeAndCost("'Carretera'",CarreteraValues,session)
+    setTimeAndCost("'Tren'",TrenValues,session)
+    setTimeAndCost("'Avion'",AvionValues,session)
+    setTimeAndCost("'Barco'",BarcoValues,session)
+    session.sync()
+
+    q = findRute("Cadiz","A Coruna",99,session)
+    data = q.data()[0]
+
+
+    print "Total time: "+str(data['totalTime']) + "h Coste: " + str(data['totalCost'])+"$"
+    for node in data['p']:
+        print str(getName(node.start, session)) + "<->" + str(getName(node.end, session)) + " Tipo: " + node.get("Tipo")
+
 
 '''
     #setTimeAndCost('"Carreteras"',CarreteraValues)
@@ -94,8 +95,7 @@ session.sync()
 
 """creacion base de datos
 
-session.run("CREATE (a:City {name: {name}})",
-              {"name": "A Coruna"})
+session.run("1)
 session.run("CREATE (a:City {name: {name}})",
               {"name": "Cadiz"})
 session.run("CREATE (a:City {name: {name}})",
