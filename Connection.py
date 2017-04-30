@@ -95,7 +95,7 @@ def order(id,origin, destination, type, session):
 
     if (tiempoMin <= type and type>=mejorTiempo):
 
-        s=session.run("CREATE (n:Package{clientID:" + str(id) + ",cost:"+str(p['totalCost'])+",time:"+str(mejorTiempo)+",transports:[],type:'"+getTypeTransport(type)+"',payed:'"+str(False)+"'}) return ID(n) as identificador").data()[0]
+        s=session.run("CREATE (n:Package{clientID:" + str(id) + ",cost:"+str(p['totalCost'])+",time:"+str(mejorTiempo)+",transports:[],location:'"+origin+"',type:'"+getTypeTransport(type)+"',payed:'"+str(False)+"'}) return ID(n) as identificador").data()[0]
         sID = s['identificador']
         for node in p['p']:
             trans=node.properties.values()[2]
@@ -111,7 +111,12 @@ def order(id,origin, destination, type, session):
     else:
         print("The office in that area doesnt ship to your destination in less than "+ str(mejorTiempo)+ " hours")
         return None
-
+def getPackageLocation(pId,session):
+    p=session.run("match (n:Package) where ID(n)="+str(pId)+" return n.location as location").data()
+    if(not p):
+        print("that package doesnt exist")
+    else:
+        return p[0]['location']
 def payService(idService,session):
     session.run("Match (n:Package) where ID(n)="+str(idService)+" set n.payed="+str(True))
 def getServicesByType(idClient,session,*types):
@@ -168,14 +173,11 @@ if __name__ == "__main__":
     setTimeAndCost("'Barco'",BarcoValues,session)
     session.sync()
 
-    print("ahalala")
-    for node in findRute("Cadiz","A Coruna",99,session).data()[0]['p']:
-        print
 
-    print("ahalala")
     #session.run("CREATE (n:Service{clientID:"+str(94)+",cost:7,time:5}) with n as cliente Match (b:Client) where ID(b)="+ str(94)+ " Create (cliente)-[c:Order]->(b)")
     idC=createClient("Pepito",session)
     idS=order(idC,"Cadiz","Madrid",STANDARD,session)
+
     idS2 = order(idC, "Madrid", "Barcelona", URGENT_DAY, session)
     idS3 = order(idC, "Cadiz", "A Coruna", ECONOMIC, session)
     """
