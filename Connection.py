@@ -6,7 +6,7 @@ URGENT_NIGHT=6
 URGENT_MORNING=8
 STANDARD=12
 ECONOMIC=sys.maxint
-
+currentTime = 0;
 def setTimeAndCost(name, values,session):
     session.run(
         "Match() - [r:Conexion]->()   where r.Tipo = " + name + " set r.Time = r.Distancia * " + str(
@@ -165,13 +165,23 @@ def vehicleAvailable(rute,session):
     else:return vehiculos
 
 
-def createRute(vehicles,rute,session):
+def createRute(vehicles,rute,maxTime,session):
+    tripTime = 0
     for i in xrange(len(rute)):
-        print rute
         session.run("match(a) where ID(a) = {id} set a.libre = {time}",{'id':vehicles[i][0]['vehiculo'],'time': rute[i]['tiempo']})
         session.run("match() -[r]-(b) where ID(r) = {id} delete r ",{'id':vehicles[i][0]['relacion']})
-        session.run("match(a:City{name:'{name}'}), (b) where ID(b) = {id} create (a)-[:hasA]->(b) ",{'name':rute[i]['final'],'id' : vehicles[i][0]['vehiculo']})
-        session.sync()
+        session.run("match(a:City{name:'{name}'}),(b) where ID(b) = {id} create (a)-[:hasA]->(b) ",{'name':rute[i]['final'],'id' : vehicles[i][0]['vehiculo']})
+        tripTime += rute[i]['tiempo']
+        #Creamos las rutas con hora maxima
+    margin = maxTime - tripTime
+    acumulated = 0
+    for r in rute:
+
+        tmp = currentTime + margin + acumulated
+        acumulated+= r['tiempo']
+        session.run("match (a:City{name:'"+r["inicio"]+"'}), (b:City{name:'"+r["final"]+"'}) create (a)-[:rute{departure:"+str(tmp)+"}]->(b) ")
+
+    session.sync()
 if __name__ == "__main__":
     session = driver.session()
     session.run("match ()-[r]->() delete r")
@@ -218,12 +228,9 @@ if __name__ == "__main__":
     #for x in tipes:
     #    session.run()
 
-    q = findRute("Cadiz","A Coruna",99,session)
 #print (type(q.data()))
     
-    data = q.data()[0]
-    print data['p']
-    print data.values()
+
 
 
 
@@ -255,7 +262,7 @@ if __name__ == "__main__":
     print vehicles
 
     if(vehicles):
-        createRute(vehicles,rute,session)
+        createRute(vehicles,rute,12,session)
     else:
         pass
 
