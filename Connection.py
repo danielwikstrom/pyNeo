@@ -166,13 +166,13 @@ def vehicleAvailable(rute,session):
 
 def movePackage(idP,nextCity,session):
     session.run("match (n:Package) where ID(n)="+str(idP)+" set location='"+nextCity+"'")
-    
+
 def createRute(vehicles,rute,session):
     for i in xrange(len(rute)):
         print rute
         session.run("match(a) where ID(a) = {id} set a.libre = {time}",{'id':vehicles[i][0]['vehiculo'],'time': rute[i]['tiempo']})
         session.run("match() -[r]-(b) where ID(r) = {id} delete r ",{'id':vehicles[i][0]['relacion']})
-        session.run("match(a:City{name:'{name}'}), (b) where ID(b) = {id} create (a)-[:hasA]->(b) ",{'name':rute[i]['final'],'id' : vehicles[i][0]['vehiculo']})
+        session.run("match(a:City{name:'"+rute[i]['final']+"'}), (b) where ID(b) = "+str(vehicles[i][0]['vehiculo'])+" create (a)-[:hasA]->(b)")
         session.sync()
 if __name__ == "__main__":
     session = driver.session()
