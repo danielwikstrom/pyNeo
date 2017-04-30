@@ -164,9 +164,24 @@ def vehicleAvailable(rute,session):
             return None
     else:return vehiculos
 
-def movePackage(idP,nextCity,session):
-    session.run("match (n:Package) where ID(n)="+str(idP)+" set location='"+nextCity+"'")
+def movePackage(idP,rute,session):
+    city=getPackageLocation(idP,session)
+    for object in rute:
+        if city == object.values()[1]:
+            print("already in destination")
+        elif city == object.values()[3]:
+            nextCity=object.values()[1]
+            session.run("match (n:Package) where ID(n)="+str(idP)+" set n.location='"+nextCity+"'")
 
+def getLeftTime(idS,rute,session):
+    city = getPackageLocation(idS, session)
+    time=0
+    for object in rute:
+        if city==object.values()[1]:
+            print("time left: 0")
+        else:
+            time=time+object.values()[0]
+    print ("time left: "+ str(time))
 def createRute(vehicles,rute,maxTime,session):
     tripTime = 0
     for i in xrange(len(rute)):
