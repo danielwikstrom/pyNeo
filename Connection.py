@@ -220,8 +220,7 @@ if __name__ == "__main__":
         #mal esto de final porque no son direccionales las conexiones
     ast = session.run("match(a:City{name:{ciudad}})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = {tipo} " + "return ID(b) as vehiculo, ID(r) as relacion limit 1",{"ciudad":values['final'],"tipo":values['tipo']})
     session.sync()
-    print type(ast)
-    print ast.consume()
+    print ast.data()
 '''
 ciudad
 
