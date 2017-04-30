@@ -226,11 +226,12 @@ if __name__ == "__main__":
     setTimeAndCost("'Barco'",BarcoValues,session)
     session.sync()
 
-    '''
+
     #session.run("CREATE (n:Service{clientID:"+str(94)+",cost:7,time:5}) with n as cliente Match (b:Client) where ID(b)="+ str(94)+ " Create (cliente)-[c:Order]->(b)")
     idC=createClient("Pepito",session)
     idS=order(idC,"Cadiz","Madrid",STANDARD,session)
 
+    '''
     idS2 = order(idC, "Madrid", "Barcelona", URGENT_DAY, session)
     idS3 = order(idC, "Cadiz", "A Coruna", ECONOMIC, session)
     """
@@ -240,7 +241,7 @@ if __name__ == "__main__":
     tipes.append("urgentDay")
     tipes.append("blabla")
     getPayedServices(142,False,session)
-'''
+    '''
 
     #getServicesByType(142,session,*tipes)
     #for x in tipes:
@@ -264,13 +265,24 @@ if __name__ == "__main__":
         name2 = getName(node.end,session)['n.name']
         print name + "->" + name2 + " Tipo: " + node.get("Tipo")
         rute.append({'inicio':name,'final':name2,'tiempo':node.get('Time'),'tipo':node.get("Tipo")})
+
+    print getPackageLocation(idS, session)
+    print getLeftTime(idS, rute, session)
+    movePackage(idS, rute, session)
+    print getPackageLocation(idS, session)
+    print getLeftTime(idS, rute, session)
+    movePackage(idS, rute, session)
+    print getPackageLocation(idS, session)
+    print getLeftTime(idS, rute, session)
+    movePackage(idS, rute, session)
+    print getPackageLocation(idS, session)
+    print getLeftTime(idS, rute, session)
+    movePackage(idS, rute, session)
     session.run("CREATE (n:Vehiculo { tipo: 'Avion',libre:0})")
     session.run("CREATE (n:Vehiculo { tipo: 'Tren',libre:0})")
     session.sync()
     session.run("Match (a:City{name:'Madrid'}) with a as madriz Match (b:Vehiculo{tipo:'Tren'}) Create (madriz)-[Tipo:hasA]->(b)")
     session.run("Match (a:City{name:'Cadiz'}) with a as madriz Match (b:Vehiculo{tipo:'Avion'}) Create (madriz)-[Tipo:hasA]->(b)")
-
-
     session.sync()
 
     session.run("match (a:City{name:'Barcelona'})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = 'Tren' return  ID(b) as vehiculo,ID(r) as relacion limit 1")
