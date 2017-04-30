@@ -171,7 +171,7 @@ def createRute(vehicles,rute,session):
     for i in xrange(len(rute)):
         print rute
         session.run("match(a) where ID(a) = {id} set a.libre = {time}",{'id':vehicles[i][0]['vehiculo'],'time': rute[i]['tiempo']})
-        session.run("match() -[r]-(b) where ID(r) = {id} set remove r create (:City{name:{name})-(r:hasA)->(b) ",{'id':vehicles[i][0]['relacion'],'name': rute[i]['final']})
+        session.run("match() -[r]-(b) where ID(r) = {id} delete r create (:City{name:{name})-(r:hasA)->(b) ",{'id':vehicles[i][0]['relacion'],'name': rute[i]['final']})
 
 if __name__ == "__main__":
     session = driver.session()
