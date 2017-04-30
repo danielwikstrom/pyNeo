@@ -149,6 +149,7 @@ if __name__ == "__main__":
     session.sync()
 
 
+
     CarreteraValues = {"Time": 1 / 100.0, "Cost": 0.01, "Carga/Descarga": 5 / 60.0}
     TrenValues = {"Time": 5 / 600.0, "Cost": 0.008, "Carga/Descarga": 1 / 6.0}
     AvionValues = {"Time": 1 / 600.0, "Cost": 0.035, "Carga/Descarga": 2 / 3.0}
@@ -159,6 +160,7 @@ if __name__ == "__main__":
     setTimeAndCost("'Avion'",AvionValues,session)
     setTimeAndCost("'Barco'",BarcoValues,session)
     session.sync()
+
     """
     """
     #session.run("CREATE (n:Service{clientID:"+str(94)+",cost:7,time:5}) with n as cliente Match (b:Client) where ID(b)="+ str(94)+ " Create (cliente)-[c:Order]->(b)")
@@ -167,12 +169,13 @@ if __name__ == "__main__":
     idS2 = order(idC, "Madrid", "Barcelona", URGENT_DAY, session)
     idS3 = order(idC, "Cadiz", "A Coruna", ECONOMIC, session)
     """
+    """
     tipes=[]
     tipes.append("economic")
     tipes.append("urgentDay")
     tipes.append("blabla")
     getPayedServices(142,False,session)
-
+    """
 
     #getServicesByType(142,session,*tipes)
     #for x in tipes:
@@ -186,14 +189,44 @@ if __name__ == "__main__":
     print data.values()
 
 
+
+    q = findRute("Cadiz","A Coruna",12,session)
+    data = q.data()[0]
+
+
+    rute = []
     print "Total time: "+str(data['totalTime']) + "h Coste: " + str(data['totalCost'])+"$"
 
     for node in data['p']:
+
         print str(getName(node.start,session)) + "<->" + str(getName(node.end,session))
     """
+    name = getName(node.start,session)['n.name']
+    name2 = getName(node.end,session)['n.name']
+    print name + "<->" + name2 + " Tipo: " + node.get("Tipo")
+    rute.append({'inicio':name,'final':name2,'tiempo':node.get('Time'),'tipo':node.get("Tipo")})
+    print rute
+    session.run("CREATE (n:Vehiculo { tipo: 'Avion',libre:0})")
+    session.run("CREATE (n:Vehiculo { tipo: 'Tren',libre:0})")
+    session.sync()
+    session.run("Match (a:City{name:'Madrid'}) with a as madriz Match (b:Vehiculo{tipo:'Tren'}) Create (madriz)-[Tipo:hasA]->(b)")
+    session.run("Match (a:City{name:'Cadiz'}) with a as madriz Match (b:Vehiculo{tipo:'Avion'}) Create (madriz)-[Tipo:hasA]->(b)")
 
 
+    session.sync()
 
+    session.run("match (a:City{name:'Barcelona'})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = 'Tren' return  ID(b) as vehiculo,ID(r) as relacion limit 1")
+    session.run("match (a:City{name:'Madrid'})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = 'Carretera' return  ID(b) as vehiculo,ID(r) as relacion limit 1")
+
+    dunno = []
+    values = rute[0]
+        #mal esto de final porque no son direccionales las conexiones
+    ast = session.run("match(a:City{name:{ciudad}})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = {tipo} " + "return ID(b) as vehiculo, ID(r) as relacion limit 1",{"ciudad":values['final'],"tipo":values['tipo']})
+    session.sync()
+    print type(ast)
+    print ast.values()
+'''
+ciudad
 
     #setTimeAndCost('"Carreteras"',CarreteraValues)
 
