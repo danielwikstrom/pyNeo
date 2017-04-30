@@ -164,7 +164,9 @@ def vehicleAvailable(rute,session):
             return None
     else:return vehiculos
 
-
+def movePackage(idP,nextCity,session):
+    session.run("match (n:Package) where ID(n)="+str(idP)+" set location='"+nextCity+"'")
+    
 def createRute(vehicles,rute,session):
     for i in xrange(len(rute)):
         print rute
