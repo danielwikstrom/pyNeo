@@ -137,7 +137,6 @@ def getPayedServices(idClient,payed,session):
 
 if __name__ == "__main__":
     session = driver.session()
-    """
     session.run("match ()-[r]->() delete r")
     session.sync()
     session.run("match (a) delete a")
@@ -161,8 +160,7 @@ if __name__ == "__main__":
     setTimeAndCost("'Barco'",BarcoValues,session)
     session.sync()
 
-    """
-    """
+
     #session.run("CREATE (n:Service{clientID:"+str(94)+",cost:7,time:5}) with n as cliente Match (b:Client) where ID(b)="+ str(94)+ " Create (cliente)-[c:Order]->(b)")
     idC=createClient("Pepito",session)
     idS=order(idC,"Cadiz","Madrid",STANDARD,session)
@@ -175,12 +173,12 @@ if __name__ == "__main__":
     tipes.append("urgentDay")
     tipes.append("blabla")
     getPayedServices(142,False,session)
-    """
+
 
     #getServicesByType(142,session,*tipes)
     #for x in tipes:
     #    session.run()
-    """
+
     q = findRute("Cadiz","A Coruna",99,session)
 #print (type(q.data()))
     
@@ -198,13 +196,12 @@ if __name__ == "__main__":
     print "Total time: "+str(data['totalTime']) + "h Coste: " + str(data['totalCost'])+"$"
 
     for node in data['p']:
+        name = getName(node.start,session)['n.name']
+        name2 = getName(node.end,session)['n.name']
+        print name + "<->" + name2
 
-        print str(getName(node.start,session)) + "<->" + str(getName(node.end,session))
-    """
-    name = getName(node.start,session)['n.name']
-    name2 = getName(node.end,session)['n.name']
-    print name + "<->" + name2 + " Tipo: " + node.get("Tipo")
-    rute.append({'inicio':name,'final':name2,'tiempo':node.get('Time'),'tipo':node.get("Tipo")})
+        print name + "<->" + name2 + " Tipo: " + node.get("Tipo")
+        rute.append({'inicio':name,'final':name2,'tiempo':node.get('Time'),'tipo':node.get("Tipo")})
     print rute
     session.run("CREATE (n:Vehiculo { tipo: 'Avion',libre:0})")
     session.run("CREATE (n:Vehiculo { tipo: 'Tren',libre:0})")
@@ -224,7 +221,7 @@ if __name__ == "__main__":
     ast = session.run("match(a:City{name:{ciudad}})-[r:hasA]-(b:Vehiculo) where b.libre <= 0 and b.tipo = {tipo} " + "return ID(b) as vehiculo, ID(r) as relacion limit 1",{"ciudad":values['final'],"tipo":values['tipo']})
     session.sync()
     print type(ast)
-    print ast.values()
+    print ast.consume()
 '''
 ciudad
 
@@ -251,4 +248,5 @@ Return p, reduce(time=0,x IN rcoll| time + x.tiempo) AS totalTime
 Order By totalTime
 """
 #for object in session.run("Match p=(a:City{name:'Cadiz'})-[r*0..5]-(b:City{name:'A Coruna'}) With p, relationships(p) As rcoll Return p, reduce(time=0,x IN rcoll| time + x.tiempo) AS totalTime Order By totalTime"):
-    #print " " .join([str(x) for x in (object.items()[0][1])])
+#print " " .join([str(x) for x in (object.items()[0][1])])
+'''
