@@ -172,8 +172,7 @@ def createRute(vehicles,rute,session):
         print rute
         session.run("match(a) where ID(a) = {id} set a.libre = {time}",{'id':vehicles[i][0]['vehiculo'],'time': rute[i]['tiempo']})
         session.run("match() -[r]-(b) where ID(r) = {id} delete r create (:City{name:{name})-(r:hasA)->(b) ",{'id':vehicles[i][0]['relacion'],'name': rute[i]['final']})
-def movePackage(idP,nextCity,session):
-    session.run("match (n:Package) where ID(n)="+str(idP)+" set location='"+nextCity+"'")
+
 if __name__ == "__main__":
     session = driver.session()
     session.run("match ()-[r]->() delete r")
